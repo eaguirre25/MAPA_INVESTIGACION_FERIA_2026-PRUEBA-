@@ -221,13 +221,16 @@ body, html {
 /* Draggable HUD Elements */
 .hud-title {
     position: absolute;
-    top: 30px;
-    left: calc(50% - 150px); /* Manual center fallback */
-    height: 360px; /* 3x the size */
+    top: 15px;
+    left: 30%;
+    width: 30vw;
+    max-width: 520px;
+    min-width: 180px;
+    height: auto;
     object-fit: contain;
     filter: drop-shadow(0 10px 25px rgba(0,0,0,0.9));
     cursor: grab;
-    pointer-events: auto; /* Catch clicks */
+    pointer-events: auto;
 }
 .hud-title:active { cursor: grabbing; }
 
@@ -277,7 +280,7 @@ body, html {
 .timer-countdown {
     font-size: 56px;
     font-weight: 900;
-    font-family: monospace;
+    font-family: 'Faustina', monospace;
     display: flex;
     gap: 5px;
     color: #fff;
@@ -699,7 +702,7 @@ body, html {
 .bus-image { width: 120px; height: auto; transform: translateY(-50%) rotate(0deg); filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); z-index: 100; position: absolute; }
 
 /* Posta Labels Phase 0 */
-.posta-label { background: rgba(0, 30, 60, 0.85); color: #0ff; padding: 5px 12px; border: 1px solid #0ff; border-radius: 8px; font-family: Orbitron, sans-serif; font-size: 14px; text-shadow: 0 0 5px #0ff; white-space: nowrap; box-shadow: 0 0 10px rgba(0,255,255,0.4); pointer-events: none; opacity: 0; transition: opacity 0.5s; transform: translateY(-30px); }
+.posta-label { background: rgba(0, 30, 60, 0.85); color: #0ff; padding: 5px 12px; border: 1px solid #0ff; border-radius: 8px; font-family: 'Faustina', sans-serif; font-size: 14px; text-shadow: 0 0 5px #0ff; white-space: nowrap; box-shadow: 0 0 10px rgba(0,255,255,0.4); pointer-events: none; opacity: 0; transition: opacity 0.5s; transform: translateY(-30px); }
 .posta-label.visible { opacity: 1; }
 
 /* Posta 1 GIF */
@@ -715,7 +718,7 @@ body, html {
     left: 20px;
     font-size: 18px;
     font-weight: 700;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Faustina', sans-serif;
     color: #fff;
     text-shadow: 0 0 10px #ff00ff, 1px 1px 3px #000;
     background: rgba(0,0,0,0.55);
@@ -779,7 +782,7 @@ body, html {
     box-shadow: 0 0 60px rgba(0,255,255,0.25);
 }
 .restart-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Faustina', sans-serif;
     color: #0ff;
     font-size: 26px;
     margin: 0 0 25px;
@@ -798,7 +801,7 @@ body, html {
     color: #556;
     font-size: 13px;
     margin: 18px 0 14px;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Faustina', sans-serif;
     letter-spacing: 2px;
 }
 .restart-postas-grid {
@@ -813,7 +816,7 @@ body, html {
     border-radius: 8px;
     color: #0ff;
     cursor: pointer;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Faustina', sans-serif;
     font-size: 11px;
     transition: background 0.2s, box-shadow 0.2s;
 }
@@ -829,7 +832,7 @@ body, html {
 }
 
 /* Inter-posta Text Box */
-.inter-posta-text { position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; background: rgba(10, 10, 10, 0.9); border: 2px solid #0ff; border-radius: 15px; padding: 20px; color: #fff; font-family: Open Sans, sans-serif; font-size: 24px; box-shadow: 0 0 20px rgba(0,255,255,0.5); z-index: 60; opacity: 0; transition: opacity 0.5s, bottom 0.5s; pointer-events: none; }
+.inter-posta-text { position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; background: rgba(10, 10, 10, 0.9); border: 2px solid #0ff; border-radius: 15px; padding: 20px; color: #fff; font-family: 'Faustina', sans-serif; font-size: 24px; box-shadow: 0 0 20px rgba(0,255,255,0.5); z-index: 60; opacity: 0; transition: opacity 0.5s, bottom 0.5s; pointer-events: none; }
 .inter-posta-text.visible { opacity: 1; bottom: 10%; }
 
 /* Embedded Modal — z-index debe superar posta-black-screen (2000) */
@@ -861,5 +864,5 @@ body, html {
 #btn-fullscreen:hover { background: rgba(0,40,80,0.9); box-shadow: 0 0 20px rgba(0,255,255,0.7); }
 
 .time-block { display: flex; flex-direction: column; align-items: center; }
-.time-sub { font-size: 14px; color: #fff; text-shadow: 2px 2px 4px #000, -2px -2px 4px #000; margin-top: -5px; font-family: "Orbitron", sans-serif; letter-spacing: 2px; font-weight: bold; }
+.time-sub { font-size: 14px; color: #fff; text-shadow: 2px 2px 4px #000, -2px -2px 4px #000; margin-top: -5px; font-family: 'Faustina', sans-serif; letter-spacing: 2px; font-weight: bold; }
 .colon { color: #fff; text-shadow: 2px 2px 4px #000, -2px -2px 4px #000; margin: 0 5px; }
