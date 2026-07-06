@@ -836,7 +836,7 @@ body, html {
 .inter-posta-text.visible { opacity: 1; bottom: 10%; }
 
 /* Embedded Modal — z-index debe superar posta-black-screen (2000) */
-#embedded-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; height: 70%; background: rgba(10, 20, 30, 0.97); border: 3px solid #fff; border-radius: 20px; z-index: 5000; display: flex; flex-direction: column; padding: 30px; color: white; font-family: 'Faustina', Orbitron, sans-serif; box-shadow: 0 0 50px rgba(255,255,255,0.5); }
+#embedded-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; height: 70%; background: rgba(10, 20, 30, 0.97); border: 3px solid #fff; border-radius: 20px; z-index: 5000; display: flex; flex-direction: column; padding: 30px; color: white; font-family: 'Faustina', Orbitron, sans-serif; box-shadow: 0 0 50px rgba(255,255,255,0.5); pointer-events: auto; }
 #embedded-modal.hidden { display: none; }
 #btn-close-modal { align-self: flex-end; background: #ff0044; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 8px; font-size: 18px; font-weight: bold; font-family: 'Faustina', sans-serif; }
 #btn-close-modal:hover { background: #ff3366; box-shadow: 0 0 15px #ff0044; }
