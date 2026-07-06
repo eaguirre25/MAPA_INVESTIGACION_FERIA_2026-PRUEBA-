@@ -239,6 +239,7 @@ body, html {
     bottom: 30px;
     right: 30px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     padding: 15px;
     padding-left: 100px; /* Space for absolute aspas */
@@ -250,6 +251,14 @@ body, html {
     width: max-content;
 }
 .hud-timer-container:active { cursor: grabbing; }
+
+.hud-counter-title {
+    width: 360px;
+    max-width: 32vw;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.85)) drop-shadow(0 0 24px rgba(255, 0, 255, 0.45));
+    pointer-events: none;
+}
 
 .hud-aspas {
     position: absolute;

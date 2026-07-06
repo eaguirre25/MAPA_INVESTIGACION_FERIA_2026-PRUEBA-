@@ -233,16 +233,40 @@
 
     map.on('load', () => {
         // All localities borders
-        map.addSource('san-martin-shape', { type: 'geojson', data: 'SAN MARTIN LOCALIDADES.geojson' });
-        fetch('SAN MARTIN LOCALIDADES.geojson')
-            .then(response => response.json())
-            .then(data => {
-                sanMartinLocalidadesGeoJSON = data;
-                const sanMartinSource = map.getSource('san-martin-shape');
-                if (sanMartinSource) sanMartinSource.setData(data);
-            })
-            .catch(error => console.warn('No se pudo cargar SAN MARTIN LOCALIDADES.geojson', error));
+        map.addSource('san-martin-shape', { type: 'geojson', data: sanMartinLocalidadesGeoJSON });
+        if (window.location.protocol !== 'file:') {
+            fetch('SAN MARTIN LOCALIDADES.geojson')
+                .then(response => response.json())
+                .then(data => {
+                    sanMartinLocalidadesGeoJSON = data;
+                    const sanMartinSource = map.getSource('san-martin-shape');
+                    if (sanMartinSource) sanMartinSource.setData(data);
+                })
+                .catch(error => console.warn('No se pudo cargar SAN MARTIN LOCALIDADES.geojson', error));
+        }
         
+        map.addLayer({
+            id: 'san-martin-base-fill',
+            type: 'fill',
+            source: 'san-martin-shape',
+            paint: {
+                'fill-color': [
+                    'match',
+                    ['get', 'id'],
+                    1, '#00d4ff',
+                    2, '#00ff88',
+                    3, '#ff2a55',
+                    4, '#ffaa00',
+                    5, '#00d4ff',
+                    6, '#00ff88',
+                    7, '#ff2a55',
+                    8, '#ffaa00',
+                    '#ffffff'
+                ],
+                'fill-opacity': 0.16
+            }
+        });
+
         // Active Highlight Fill (illuminates entire locality)
         map.addLayer({
             id: 'san-martin-active-fill', type: 'fill', source: 'san-martin-shape',
@@ -378,15 +402,6 @@
         p1El.className = 'posta1-gif';
         window.posta1MarkerEl = p1El;
         new maplibregl.Marker({element: p1El, anchor: 'bottom'}).setLngLat(fullPathArray[0]).addTo(map);
-
-        const titleCartel = document.createElement('div');
-        titleCartel.className = 'cartel-marker';
-        const titleCartelImg = document.createElement('img');
-        titleCartelImg.src = 'EL CAMINO DE LA INVESTIGACION-TITULO.png';
-        titleCartelImg.alt = 'El camino de la investigacion';
-        titleCartel.appendChild(titleCartelImg);
-        window.titleCartelMarkerEl = titleCartel;
-        new maplibregl.Marker({element: titleCartel, anchor: 'bottom', offset: [0, -90]}).setLngLat(fullPathArray[0]).addTo(map);
 
         // Posta 2 Atalaya GIF marker
         const p2El = document.createElement('img');
