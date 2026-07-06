@@ -37,6 +37,45 @@
     };
 
     let sanMartinLocalidadesGeoJSON = sanMartinGeoJSON;
+    function getGeoJSONBounds(geojson) {
+        const bounds = [[Infinity, Infinity], [-Infinity, -Infinity]];
+        function walk(coords) {
+            if (!Array.isArray(coords)) return;
+            if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+                bounds[0][0] = Math.min(bounds[0][0], coords[0]);
+                bounds[0][1] = Math.min(bounds[0][1], coords[1]);
+                bounds[1][0] = Math.max(bounds[1][0], coords[0]);
+                bounds[1][1] = Math.max(bounds[1][1], coords[1]);
+                return;
+            }
+            coords.forEach(walk);
+        }
+        geojson.features.forEach(feature => walk(feature.geometry.coordinates));
+        return bounds;
+    }
+    const sanMartinBounds = getGeoJSONBounds(sanMartinGeoJSON);
+
+    function bringSanMartinMapLayersToFront() {
+        [
+            'san-martin-map-fill',
+            'localidades-san-martin-shp-fill',
+            'san-martin-base-fill',
+            'san-martin-map-boundary-glow',
+            'localidades-san-martin-shp-glow',
+            'san-martin-base-glow',
+            'san-martin-map-boundary-core',
+            'localidades-san-martin-shp-core',
+            'san-martin-core',
+            'san-martin-map-locality-labels',
+            'localidades-san-martin-shp-labels',
+            'san-martin-labels',
+            'san-martin-active-fill',
+            'san-martin-active-glow',
+            'san-martin-active-labels'
+        ].forEach(layerId => {
+            if (map.getLayer(layerId)) map.moveLayer(layerId);
+        });
+    }
 
     let trainCoords = [];
     if (typeof trainGeoJSON !== 'undefined') {
@@ -95,7 +134,7 @@
             layers: [ { id: 'satellite-layer', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 22 } ]
         },
         center: coordsCenter,
-        zoom: 12.5,
+        zoom: 11.35,
         pitch: 0,
         bearing: 0,
         interactive: false,
@@ -332,6 +371,69 @@
             }
         });
 
+        map.addLayer({
+            id: 'san-martin-map-fill',
+            type: 'fill',
+            source: 'san-martin-shape',
+            paint: {
+                'fill-color': [
+                    'match',
+                    ['get', 'id'],
+                    1, '#00d4ff',
+                    2, '#00ff88',
+                    3, '#ff2a55',
+                    4, '#ffaa00',
+                    5, '#00d4ff',
+                    6, '#00ff88',
+                    7, '#ff2a55',
+                    8, '#ffaa00',
+                    '#ffffff'
+                ],
+                'fill-opacity': 0.34
+            }
+        });
+        map.addLayer({
+            id: 'san-martin-map-boundary-glow',
+            type: 'line',
+            source: 'san-martin-shape',
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
+            paint: {
+                'line-color': '#00e5ff',
+                'line-width': 26,
+                'line-blur': 14,
+                'line-opacity': 1
+            }
+        });
+        map.addLayer({
+            id: 'san-martin-map-boundary-core',
+            type: 'line',
+            source: 'san-martin-shape',
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
+            paint: {
+                'line-color': '#ffffff',
+                'line-width': 5,
+                'line-opacity': 1
+            }
+        });
+        map.addLayer({
+            id: 'san-martin-map-locality-labels',
+            type: 'symbol',
+            source: 'san-martin-shape',
+            layout: {
+                'text-field': ['get', 'Localidad'],
+                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                'text-size': 24,
+                'text-anchor': 'center',
+                'text-allow-overlap': true,
+                'text-ignore-placement': true
+            },
+            paint: {
+                'text-color': '#ffffff',
+                'text-halo-color': '#001018',
+                'text-halo-width': 4
+            }
+        });
+
         // Active Highlight Fill (illuminates entire locality)
         map.addLayer({
             id: 'san-martin-active-fill', type: 'fill', source: 'san-martin-shape',
@@ -528,6 +630,7 @@
         depot10El.style.zIndex = 50;
         window.depot10MarkerEl = depot10El;
         window.depot10MarkerObj = new maplibregl.Marker({element: depot10El, anchor: 'bottom', offset: [depotConf.offX, depotConf.offY]}).setLngLat(fullPathArray[fullPathArray.length - 1]).addTo(map);
+        bringSanMartinMapLayersToFront();
     });
 
     // Interpolación suave de ángulos para evitar rotación brusca al inicio
@@ -1241,6 +1344,7 @@
                     screen3.classList.remove('under');
                     screen3.classList.add('active');
                     map.resize();
+                    map.fitBounds(sanMartinBounds, { padding: 70, maxZoom: 12.2, duration: 0 });
                     map.triggerRepaint();
                     mapPhase = 0;
                 }, 2500); 
