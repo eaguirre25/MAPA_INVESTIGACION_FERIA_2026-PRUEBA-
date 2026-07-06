@@ -36,6 +36,8 @@
         ]
     };
 
+    let sanMartinLocalidadesGeoJSON = sanMartinGeoJSON;
+
     let trainCoords = [];
     if (typeof trainGeoJSON !== 'undefined') {
         const points = trainGeoJSON.features.map(f => f.geometry.coordinates);
@@ -231,7 +233,15 @@
 
     map.on('load', () => {
         // All localities borders
-        map.addSource('san-martin-shape', { type: 'geojson', data: sanMartinGeoJSON });
+        map.addSource('san-martin-shape', { type: 'geojson', data: 'SAN MARTIN LOCALIDADES.geojson' });
+        fetch('SAN MARTIN LOCALIDADES.geojson')
+            .then(response => response.json())
+            .then(data => {
+                sanMartinLocalidadesGeoJSON = data;
+                const sanMartinSource = map.getSource('san-martin-shape');
+                if (sanMartinSource) sanMartinSource.setData(data);
+            })
+            .catch(error => console.warn('No se pudo cargar SAN MARTIN LOCALIDADES.geojson', error));
         
         // Active Highlight Fill (illuminates entire locality)
         map.addLayer({
@@ -368,6 +378,15 @@
         p1El.className = 'posta1-gif';
         window.posta1MarkerEl = p1El;
         new maplibregl.Marker({element: p1El, anchor: 'bottom'}).setLngLat(fullPathArray[0]).addTo(map);
+
+        const titleCartel = document.createElement('div');
+        titleCartel.className = 'cartel-marker';
+        const titleCartelImg = document.createElement('img');
+        titleCartelImg.src = 'EL CAMINO DE LA INVESTIGACION-TITULO.png';
+        titleCartelImg.alt = 'El camino de la investigacion';
+        titleCartel.appendChild(titleCartelImg);
+        window.titleCartelMarkerEl = titleCartel;
+        new maplibregl.Marker({element: titleCartel, anchor: 'bottom', offset: [0, -90]}).setLngLat(fullPathArray[0]).addTo(map);
 
         // Posta 2 Atalaya GIF marker
         const p2El = document.createElement('img');
@@ -669,7 +688,8 @@
                 if (typeof turf !== 'undefined') {
                     const pt = turf.point([lng, lat]);
                     let foundId = -1;
-                    for (let f of sanMartinGeoJSON.features) {
+                    const localityFeatures = (sanMartinLocalidadesGeoJSON && sanMartinLocalidadesGeoJSON.features) || [];
+                    for (let f of localityFeatures) {
                         if (turf.booleanPointInPolygon(pt, f)) {
                             foundId = f.properties.id;
                             break;
@@ -686,7 +706,7 @@
                         const localityDisplay = document.getElementById('locality-name-display');
                         if (localityDisplay) {
                             if (foundId !== -1) {
-                                const feat = sanMartinGeoJSON.features.find(f => f.properties.id === foundId);
+                                const feat = localityFeatures.find(f => f.properties.id === foundId);
                                 if (feat) {
                                     localityDisplay.innerText = feat.properties.Localidad;
                                     localityDisplay.classList.add('visible');
