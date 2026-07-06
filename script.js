@@ -309,9 +309,6 @@
         map.addLayer({ id: 'train-line-ties', type: 'line', source: 'train-line-source', paint: { 'line-color': '#00ff00', 'line-width': 12, 'line-dasharray': [0.1, 1.5], 'line-blur': 1 } });
         map.addLayer({ id: 'train-line-rails', type: 'line', source: 'train-line-source', paint: { 'line-color': '#ffffff', 'line-width': 3 } });
 
-        // Add 3D Building Layer
-        map.addLayer(customLayer3D);
-
         // Cyan Pins for all Postas (1 to 9)
         fullPathArray.forEach((coord, i) => {
             const el = document.createElement('div');
@@ -841,7 +838,10 @@
                     if (nextIndex <= 2) moveMode = 'street'; // Bus on streets
 
                     // Switch phase if reaching Posta 2 or 3
-                    if (nextIndex === 1 && forward && mapPhase < 2) mapPhase = 2;
+                    if (nextIndex === 1 && forward && mapPhase < 2) {
+                        mapPhase = 2;
+                        if (!map.getLayer('3d-model')) map.addLayer(customLayer3D);
+                    }
                     if (nextIndex === 2 && forward && mapPhase < 3) mapPhase = 3;
 
                     if (moveMode === 'street') {
