@@ -177,6 +177,9 @@
         </div>
     </div>
 
+    <!-- Botón de pantalla completa (siempre visible) -->
+    <button id="btn-fullscreen" onclick="(function(){if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen();})()">⛶ Pantalla completa</button>
+
     <!-- MapLibre GL JS -->
     <script src="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet" />

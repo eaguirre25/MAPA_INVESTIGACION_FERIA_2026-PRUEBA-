@@ -790,7 +790,11 @@
                 if (window.depot10MarkerEl) window.depot10MarkerEl.classList.add('visible');
                 if (window.migueletMarkerEl) window.migueletMarkerEl.classList.add('visible');
                 if (window.localityGifEls) window.localityGifEls.forEach(el => el.classList.add('visible'));
-                if (window.jlsMarkerEl) window.jlsMarkerEl.classList.add('visible');
+                // jlsMarkerEl se muestra al iniciar el último tramo (no aquí)
+
+                // Mostrar botón de reinicio desde el inicio del recorrido
+                const _rbtn = document.getElementById('btn-show-restart');
+                if (_rbtn) _rbtn.classList.remove('hidden');
 
                 // Confetti burst
                 let cInt = setInterval(() => spawnConfetti(p1Coord, 10), 100);
@@ -801,7 +805,7 @@
 
                 postaScreenEl.innerText = postasText[0];
                 postaScreenEl.style.bottom = 'auto';
-                postaScreenEl.style.top = '-120px';
+                postaScreenEl.style.top = '-300px';
                 postaScreenEl.style.left = '';
                 pinwheelDiv.appendChild(postaScreenEl);
                 setTimeout(() => postaScreenEl.classList.add('visible'), 100);
@@ -848,6 +852,11 @@
                     }
                     
                     if (window.posta1MarkerEl) window.posta1MarkerEl.classList.remove('visible');
+
+                    // Mostrar José L. Suárez al iniciar el último tramo del recorrido
+                    if (nextIndex === fullPathArray.length - 1 && window.jlsMarkerEl) {
+                        window.jlsMarkerEl.classList.add('visible');
+                    }
 
                     await moveToPoint(currentPathIndex, nextIndex, moveMode);
                     currentPathIndex = nextIndex;
@@ -936,11 +945,11 @@
                     if (moveMode === 'street') {
                         postaScreenEl.style.bottom = 'auto';
                         if (currentPathIndex === 1) {
-                            // Posta 2: cartel a la derecha para no tapar la imagen de Atalaya
-                            postaScreenEl.style.top = '-60px';
-                            postaScreenEl.style.left = 'calc(50% + 280px)';
-                        } else {
+                            // Posta 2: cartel a la izquierda para no tapar el colectivo
                             postaScreenEl.style.top = '-120px';
+                            postaScreenEl.style.left = 'calc(50% - 380px)';
+                        } else {
+                            postaScreenEl.style.top = '-300px';
                             postaScreenEl.style.left = '';
                         }
                     } else {
@@ -1004,11 +1013,11 @@
                     if (moveMode === 'street') {
                         postaScreenEl.style.bottom = 'auto';
                         if (currentPathIndex === 1) {
-                            // Posta 2: cartel a la derecha para no tapar la imagen de Atalaya
-                            postaScreenEl.style.top = '-60px';
-                            postaScreenEl.style.left = 'calc(50% + 280px)';
-                        } else {
+                            // Posta 2: cartel a la izquierda para no tapar el colectivo
                             postaScreenEl.style.top = '-120px';
+                            postaScreenEl.style.left = 'calc(50% - 380px)';
+                        } else {
+                            postaScreenEl.style.top = '-300px';
                             postaScreenEl.style.left = '';
                         }
                     } else {
@@ -1066,10 +1075,10 @@
                 if (moveMode === 'street') {
                     postaScreenEl.style.bottom = 'auto';
                     if (currentPathIndex === 1) {
-                        postaScreenEl.style.top = '-60px';
-                        postaScreenEl.style.left = 'calc(50% + 280px)';
-                    } else {
                         postaScreenEl.style.top = '-120px';
+                        postaScreenEl.style.left = 'calc(50% - 380px)';
+                    } else {
+                        postaScreenEl.style.top = '-300px';
                         postaScreenEl.style.left = '';
                     }
                 } else {
