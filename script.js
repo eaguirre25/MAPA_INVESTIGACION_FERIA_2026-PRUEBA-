@@ -278,14 +278,14 @@
         map.addLayer({
             id: 'san-martin-base-glow', type: 'line', source: 'san-martin-shape',
             layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': '#00d4ff', 'line-width': 8, 'line-blur': 6, 'line-opacity': 0.5 }
+            paint: { 'line-color': '#00d4ff', 'line-width': 12, 'line-blur': 8, 'line-opacity': 0.85 }
         });
-        
+
         // Active Highlight Glow
         map.addLayer({
             id: 'san-martin-active-glow', type: 'line', source: 'san-martin-shape',
             layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': '#ff00ff', 'line-width': 25, 'line-blur': 15, 'line-opacity': 1 },
+            paint: { 'line-color': '#ff00ff', 'line-width': 35, 'line-blur': 20, 'line-opacity': 1 },
             filter: ['==', 'id', -1]
         });
         
@@ -422,7 +422,7 @@
         jlsEl.src = 'jose_l_suarez.gif';
         jlsEl.className = 'posta1-gif locality-gif';
         window.jlsMarkerEl = jlsEl;
-        new maplibregl.Marker({element: jlsEl, anchor: 'bottom', offset: [700, 0]}).setLngLat(fullPathArray[fullPathArray.length - 1]).addTo(map);
+        new maplibregl.Marker({element: jlsEl, anchor: 'bottom'}).setLngLat(fullPathArray[fullPathArray.length - 2]).addTo(map);
 
         // Posta 9 Depot (final)
         const depot10El = document.createElement('img');
@@ -950,7 +950,7 @@
                             postaScreenEl.style.top = '-120px';
                             postaScreenEl.style.left = 'calc(50% - 380px)';
                         } else {
-                            postaScreenEl.style.top = '-300px';
+                            postaScreenEl.style.top = '-120px';
                             postaScreenEl.style.left = '';
                         }
                     } else {
@@ -1018,7 +1018,7 @@
                             postaScreenEl.style.top = '-120px';
                             postaScreenEl.style.left = 'calc(50% - 380px)';
                         } else {
-                            postaScreenEl.style.top = '-300px';
+                            postaScreenEl.style.top = '-120px';
                             postaScreenEl.style.left = '';
                         }
                     } else {
