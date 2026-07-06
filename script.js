@@ -229,6 +229,20 @@
         }
     };
 
+    function setActiveLocality(foundId) {
+        if (!map || !map.isStyleLoaded()) return;
+        const filter = ['==', 'id', foundId];
+        if (map.getLayer('san-martin-active-glow')) {
+            map.setFilter('san-martin-active-glow', filter);
+        }
+        if (map.getLayer('san-martin-active-fill')) {
+            map.setFilter('san-martin-active-fill', filter);
+        }
+        if (map.getLayer('san-martin-active-labels')) {
+            map.setFilter('san-martin-active-labels', filter);
+        }
+    }
+
     map.on('load', () => {
         // All localities borders
         map.addSource('san-martin-shape', { type: 'geojson', data: sanMartinGeoJSON });
@@ -309,6 +323,9 @@
         map.addLayer({ id: 'train-line-ties', type: 'line', source: 'train-line-source', paint: { 'line-color': '#00ff00', 'line-width': 12, 'line-dasharray': [0.1, 1.5], 'line-blur': 1 } });
         map.addLayer({ id: 'train-line-rails', type: 'line', source: 'train-line-source', paint: { 'line-color': '#ffffff', 'line-width': 3 } });
 
+        // Initialize the 3D layer with the map. Its render method keeps it hidden until Phase 2.
+        if (!map.getLayer('3d-model')) map.addLayer(customLayer3D);
+
         // Cyan Pins for all Postas (1 to 9)
         fullPathArray.forEach((coord, i) => {
             const el = document.createElement('div');
@@ -368,6 +385,16 @@
         p1El.className = 'posta1-gif';
         window.posta1MarkerEl = p1El;
         new maplibregl.Marker({element: p1El, anchor: 'bottom'}).setLngLat(fullPathArray[0]).addTo(map);
+
+        // Cartel visual de inicio con la imagen del recorrido.
+        const journeyCartel = document.createElement('div');
+        journeyCartel.className = 'cartel-marker';
+        const journeyCartelImg = document.createElement('img');
+        journeyCartelImg.src = 'El camino de la investigación.png';
+        journeyCartelImg.alt = 'El camino de la investigación';
+        journeyCartel.appendChild(journeyCartelImg);
+        window.journeyCartelMarkerEl = journeyCartel;
+        new maplibregl.Marker({element: journeyCartel, anchor: 'bottom', offset: [0, -90]}).setLngLat(fullPathArray[0]).addTo(map);
 
         // Posta 2 Atalaya GIF marker
         const p2El = document.createElement('img');
@@ -675,11 +702,7 @@
                             break;
                         }
                     }
-                    map.setFilter('san-martin-active-glow', ['==', 'id', foundId]);
-                    map.setFilter('san-martin-active-fill', ['==', 'id', foundId]);
-                    if (map.getLayer('san-martin-active-labels')) {
-                        map.setFilter('san-martin-active-labels', ['==', 'id', foundId]);
-                    }
+                    setActiveLocality(foundId);
                     // Show locality name overlay when entering a new locality
                     if (foundId !== lastLocalityId) {
                         lastLocalityId = foundId;
@@ -840,7 +863,6 @@
                     // Switch phase if reaching Posta 2 or 3
                     if (nextIndex === 1 && forward && mapPhase < 2) {
                         mapPhase = 2;
-                        if (!map.getLayer('3d-model')) map.addLayer(customLayer3D);
                     }
                     if (nextIndex === 2 && forward && mapPhase < 3) mapPhase = 3;
 
