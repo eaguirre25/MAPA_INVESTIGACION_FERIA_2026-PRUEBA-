@@ -1,0 +1,43 @@
+# Backups
+*_backup*.js
+*_backup*.css
+*_backup*.html
+
+# Dev scripts
+*.ps1
+*.py
+*.cs
+fix.ps1
+fix_encoding.py
+bgremover.cs
+parse_tracks.js
+fetch_tracks.js
+parse.ps1
+clean.ps1
+check.py
+count.ps1
+strings.ps1
+convert*.js
+convert*.ps1
+extract_frame.ps1
+filter_tracks.ps1
+generate_data.ps1
+get_postas.ps1
+patch.js
+remove_bg.ps1
+test_*.ps1
+
+# Archives
+*.zip
+ppt_extract/
+
+# Claude session files
+.claude/
+
+# Shapefiles
+*.shp
+*.dbf
+*.prj
+*.shx
+*.cpg
+*.qmd

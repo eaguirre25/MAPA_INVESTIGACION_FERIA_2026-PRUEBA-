@@ -1,0 +1,27 @@
+{
+  "type": "FeatureCollection",
+  "name": "campus_miguelete_unsam_referencia",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "nombre": "Campus Miguelete UNSAM",
+        "direccion": "25 de Mayo y Francia, San Martín, Provincia de Buenos Aires",
+        "uso": "punto de referencia oficial; la capa visual es aproximada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -58.52669506915896,
+          -34.579839069493076
+        ]
+      }
+    }
+  ]
+}
