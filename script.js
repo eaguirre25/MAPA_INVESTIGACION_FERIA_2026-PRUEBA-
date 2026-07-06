@@ -101,6 +101,7 @@
         interactive: false,
         antialias: true
     });
+    window.map = map;
 
     let mainPinwheelMarker;
     let depotMarker = null;
@@ -243,6 +244,70 @@
                     if (sanMartinSource) sanMartinSource.setData(data);
                 })
                 .catch(error => console.warn('No se pudo cargar SAN MARTIN LOCALIDADES.geojson', error));
+        }
+
+        if (window.localidadesSanMartinShape) {
+            map.addSource('localidades-san-martin-shp', {
+                type: 'geojson',
+                data: window.localidadesSanMartinShape
+            });
+            map.addLayer({
+                id: 'localidades-san-martin-shp-fill',
+                type: 'fill',
+                source: 'localidades-san-martin-shp',
+                paint: {
+                    'fill-color': [
+                        'match',
+                        ['get', 'id'],
+                        1, '#00d4ff',
+                        2, '#00ff88',
+                        3, '#ff2a55',
+                        7, '#ffaa00',
+                        11, '#a855f7',
+                        '#ffffff'
+                    ],
+                    'fill-opacity': 0.24
+                }
+            });
+            map.addLayer({
+                id: 'localidades-san-martin-shp-glow',
+                type: 'line',
+                source: 'localidades-san-martin-shp',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': '#00e5ff',
+                    'line-width': 16,
+                    'line-blur': 10,
+                    'line-opacity': 0.9
+                }
+            });
+            map.addLayer({
+                id: 'localidades-san-martin-shp-core',
+                type: 'line',
+                source: 'localidades-san-martin-shp',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': '#ffffff',
+                    'line-width': 3,
+                    'line-opacity': 0.95
+                }
+            });
+            map.addLayer({
+                id: 'localidades-san-martin-shp-labels',
+                type: 'symbol',
+                source: 'localidades-san-martin-shp',
+                layout: {
+                    'text-field': ['get', 'Localidad'],
+                    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                    'text-size': 16,
+                    'text-anchor': 'center'
+                },
+                paint: {
+                    'text-color': '#ffffff',
+                    'text-halo-color': '#001018',
+                    'text-halo-width': 3
+                }
+            });
         }
         
         map.addLayer({
@@ -1175,6 +1240,8 @@
                     screen2.classList.remove('active');
                     screen3.classList.remove('under');
                     screen3.classList.add('active');
+                    map.resize();
+                    map.triggerRepaint();
                     mapPhase = 0;
                 }, 2500); 
             } else if (screen3.classList.contains('active')) {
