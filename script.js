@@ -770,7 +770,7 @@
                 const w = document.createElement('img');
                 w.src = 'COLECTIVO FERIA-anverso.png';
                 w.className = 'bus-image';
-                const busConf = JSON.parse(localStorage.getItem('busConfig') || '{"size":120, "rot":0}');
+                const busConf = JSON.parse(localStorage.getItem('busConfig') || '{"size":300, "rot":0}');
                 w.style.width = busConf.size + 'px';
                 w.style.transform = `translateY(-85%) rotate(${busConf.rot}deg)`;
 
@@ -992,7 +992,7 @@
                     const w = document.createElement('img');
                     w.src = 'COLECTIVO FERIA-anverso.png';
                     w.className = 'bus-image';
-                    const busConf = JSON.parse(localStorage.getItem('busConfig') || '{"size":120, "rot":0}');
+                    const busConf = JSON.parse(localStorage.getItem('busConfig') || '{"size":300, "rot":0}');
                     w.style.width = busConf.size + 'px';
                     w.style.transform = `translateY(-85%) rotate(${busConf.rot}deg)`;
                     
@@ -1445,7 +1445,7 @@ const editorCanvasBus = document.getElementById('editor-canvas-bus');
 const editorBusImg = document.getElementById('editor-bus-img');
 
 function loadBusConfig() {
-    const conf = JSON.parse(localStorage.getItem('busConfig') || '{"size":120, "rot":0}');
+    const conf = JSON.parse(localStorage.getItem('busConfig') || '{"size":300, "rot":0}');
     busSizeSlider.value = conf.size; busSizeVal.innerText = conf.size + 'px';
     busRotSlider.value = conf.rot; busRotVal.innerText = conf.rot + '°';
     editorCanvasBus.style.width = conf.size + 'px';
