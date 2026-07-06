@@ -233,24 +233,30 @@
         // All localities borders
         map.addSource('san-martin-shape', { type: 'geojson', data: sanMartinGeoJSON });
         
+        // Base fill (always visible, very subtle) so locality areas show even at rest
+        map.addLayer({
+            id: 'san-martin-base-fill', type: 'fill', source: 'san-martin-shape',
+            paint: { 'fill-color': '#00d4ff', 'fill-opacity': 0.08 }
+        });
+
         // Active Highlight Fill (illuminates entire locality)
         map.addLayer({
             id: 'san-martin-active-fill', type: 'fill', source: 'san-martin-shape',
-            paint: { 
+            paint: {
                 'fill-color': [
                     'match',
                     ['get', 'id'],
-                    1, '#ff0000', // Red
-                    2, '#0000ff', // Blue
-                    3, '#ffff00', // Yellow
-                    4, '#00ff00', // Green
-                    5, '#ff0000',
-                    6, '#0000ff',
-                    7, '#ffff00',
-                    8, '#00ff00',
+                    1, '#ff4444',
+                    2, '#4488ff',
+                    3, '#ffee00',
+                    4, '#00ff88',
+                    5, '#ff4444',
+                    6, '#4488ff',
+                    7, '#ffee00',
+                    8, '#00ff88',
                     '#ff00ff'
                 ],
-                'fill-opacity': 0.3 
+                'fill-opacity': 0.55
             },
             filter: ['==', 'id', -1] // Initially hide all
         });
@@ -278,14 +284,14 @@
         map.addLayer({
             id: 'san-martin-base-glow', type: 'line', source: 'san-martin-shape',
             layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': '#00d4ff', 'line-width': 8, 'line-blur': 6, 'line-opacity': 0.5 }
+            paint: { 'line-color': '#00d4ff', 'line-width': 12, 'line-blur': 8, 'line-opacity': 0.85 }
         });
         
         // Active Highlight Glow
         map.addLayer({
             id: 'san-martin-active-glow', type: 'line', source: 'san-martin-shape',
             layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': '#ff00ff', 'line-width': 25, 'line-blur': 15, 'line-opacity': 1 },
+            paint: { 'line-color': '#ff00ff', 'line-width': 35, 'line-blur': 20, 'line-opacity': 1 },
             filter: ['==', 'id', -1]
         });
         
