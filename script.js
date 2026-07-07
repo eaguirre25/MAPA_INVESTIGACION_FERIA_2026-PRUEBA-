@@ -146,8 +146,8 @@
         },
         layers: [
             { id: 'satellite-layer', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 22 },
-            { id: 'san-martin-base-fill', type: 'fill', source: 'sm-locality-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.16 } },
-            { id: 'san-martin-map-fill', type: 'fill', source: 'sm-locality-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.34 } },
+            { id: 'san-martin-base-fill', type: 'fill', source: 'sm-locality-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.06 } },
+            { id: 'san-martin-map-fill', type: 'fill', source: 'sm-locality-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.12 } },
             { id: 'san-martin-map-boundary-glow', type: 'line', source: 'sm-locality-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 26, 'line-blur': 14, 'line-opacity': 1 } },
             { id: 'san-martin-map-boundary-core', type: 'line', source: 'sm-locality-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 5, 'line-opacity': 1 } },
             { id: 'san-martin-map-locality-labels', type: 'symbol', source: 'sm-locality-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 24, 'text-anchor': 'center', 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 4 } },
@@ -363,7 +363,7 @@
                         11, '#a855f7',
                         '#ffffff'
                     ],
-                    'fill-opacity': 0.24
+                    'fill-opacity': 0.08
                 }
             });
             map.addLayer({
@@ -568,7 +568,7 @@
                             4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88',
                             7, '#ff2a55', 8, '#ffaa00', '#ffffff'
                         ],
-                        'fill-opacity': 0.28
+                        'fill-opacity': 0.08
                     }
                 });
                 map.addLayer({
@@ -629,7 +629,7 @@
 
             if (map.getSource('loc-shp-shape')) {
                 rebuildFillSource('loc-shp-shape', [
-                    { id: 'loc-shp-shape-fill', type: 'fill', source: 'loc-shp-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 7, '#ffaa00', 11, '#a855f7', '#ffffff'], 'fill-opacity': 0.24 } },
+                    { id: 'loc-shp-shape-fill', type: 'fill', source: 'loc-shp-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 7, '#ffaa00', 11, '#a855f7', '#ffffff'], 'fill-opacity': 0.08 } },
                     { id: 'loc-shp-shape-glow', type: 'line', source: 'loc-shp-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 16, 'line-blur': 10, 'line-opacity': 0.9 } },
                     { id: 'loc-shp-shape-core', type: 'line', source: 'loc-shp-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 0.95 } },
                     { id: 'loc-shp-shape-labels', type: 'symbol', source: 'loc-shp-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 16, 'text-anchor': 'center' }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 3 } }
@@ -638,7 +638,7 @@
 
             if (map.getSource('loc-ext-shape')) {
                 rebuildFillSource('loc-ext-shape', [
-                    { id: 'loc-ext-shape-fill', type: 'fill', source: 'loc-ext-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.28 } },
+                    { id: 'loc-ext-shape-fill', type: 'fill', source: 'loc-ext-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.08 } },
                     { id: 'loc-ext-shape-glow', type: 'line', source: 'loc-ext-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 20, 'line-blur': 12, 'line-opacity': 1 } },
                     { id: 'loc-ext-shape-border', type: 'line', source: 'loc-ext-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 1 } },
                     { id: 'loc-ext-shape-labels', type: 'symbol', source: 'loc-ext-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 18, 'text-anchor': 'center', 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 3 } }
