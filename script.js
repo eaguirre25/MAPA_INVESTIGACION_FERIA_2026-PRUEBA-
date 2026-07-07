@@ -148,6 +148,11 @@
     window.map = map;
 
     // Fallback: if map.on('load') still hasn't fired after 2s, force a style reload.
+    // NOTE: after setStyle() rebuilds the style, the GeoJSON worker needs a brief moment
+    // to fully re-initialize before it can tile newly-added sources correctly — firing
+    // 'load' the instant style.load fires causes sources added in the load handler
+    // (san-martin-shape, localidades-ext, etc.) to silently fail to tile (0 features
+    // rendered despite valid data). A short extra delay avoids that race.
     window._mapLayersReady = false;
     setTimeout(function() {
         if (window._mapLayersReady) return;
@@ -155,7 +160,16 @@
             map.fire('load');
         } else {
             map.once('style.load', function() {
-                if (!window._mapLayersReady) map.fire('load');
+                // Wait for the worker to fully stabilize post-rebuild before adding
+                // sources — 'idle' fires once the style AND all currently-requested
+                // tiles have settled, which is more reliable than a fixed delay.
+                map.once('idle', function() {
+                    if (!window._mapLayersReady) map.fire('load');
+                });
+                // Safety net in case 'idle' never fires
+                setTimeout(function() {
+                    if (!window._mapLayersReady) map.fire('load');
+                }, 3000);
             });
             map.setStyle(mapStyle);
         }
@@ -293,7 +307,7 @@
     map.on('load', () => {
         if (window._mapLayersReady) return; window._mapLayersReady = true;
         // All localities borders
-        map.addSource('san-martin-shape', { type: 'geojson', data: sanMartinLocalidadesGeoJSON });
+        map.addSource('san-martin-shape', { type: 'geojson', data: sanMartinLocalidadesGeoJSON, tolerance: 0, buffer: 256, maxzoom: 18 });
         if (window.location.protocol !== 'file:') {
             fetch('SAN MARTIN LOCALIDADES.geojson')
                 .then(response => response.json())
@@ -572,6 +586,17 @@
 
         mainPinwheelMarker = new maplibregl.Marker({ element: pinwheelDiv, anchor: 'center' }).setLngLat(p1Coord).addTo(map);
 
+        // MapLibre v4 fuerza opacity:1 inline en el elemento del Marker (fade de oclusión
+        // con terreno), lo que pisa nuestra clase CSS .posta1-gif{opacity:0} / .posta-label{opacity:0}.
+        // Por eso cada elemento se envuelve en un <div> "mudo" que le pasamos al Marker; la
+        // opacidad real sigue controlada por la clase 'visible' en el elemento interno.
+        function wrapMarkerEl(innerEl) {
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'inline-block';
+            wrapper.appendChild(innerEl);
+            return wrapper;
+        }
+
         // Posta Labels for Phase 0
         window.postaLabels = [];
         fullPathArray.forEach((coord, i) => {
@@ -579,7 +604,7 @@
             const el = document.createElement('div');
             el.className = 'posta-label visible';
             el.innerText = postasText[i].split(':')[0];
-            new maplibregl.Marker({element: el, anchor: 'left', offset: [15, 0]}).setLngLat(coord).addTo(map);
+            new maplibregl.Marker({element: wrapMarkerEl(el), anchor: 'left', offset: [15, 0]}).setLngLat(coord).addTo(map);
             window.postaLabels.push(el);
         });
 
@@ -588,7 +613,7 @@
         p1El.src = 'posta1.gif';
         p1El.className = 'posta1-gif';
         window.posta1MarkerEl = p1El;
-        new maplibregl.Marker({element: p1El, anchor: 'bottom'}).setLngLat(fullPathArray[0]).addTo(map);
+        new maplibregl.Marker({element: wrapMarkerEl(p1El), anchor: 'bottom'}).setLngLat(fullPathArray[0]).addTo(map);
 
         // Posta 2 Atalaya GIF marker
         const p2El = document.createElement('img');
@@ -597,7 +622,7 @@
         p2El.style.width = '765px'; // ~1.7x Posta 1 (900 * 0.85)
         p2El.style.zIndex = 10;
         window.posta2MarkerEl = p2El;
-        new maplibregl.Marker({element: p2El, anchor: 'bottom'}).setLngLat(fullPathArray[1]).addTo(map);
+        new maplibregl.Marker({element: wrapMarkerEl(p2El), anchor: 'bottom'}).setLngLat(fullPathArray[1]).addTo(map);
 
         const depotConf = JSON.parse(localStorage.getItem('depotConfig') || '{"size": 720, "offX": 0, "offY": 0}');
 
@@ -608,14 +633,14 @@
         depot3El.style.width = depotConf.size + 'px';
         depot3El.style.zIndex = 100;
         window.depot3MarkerEl = depot3El;
-        window.depot3MarkerObj = new maplibregl.Marker({element: depot3El, anchor: 'bottom', offset: [depotConf.offX, depotConf.offY]}).setLngLat(fullPathArray[2]).addTo(map);
+        window.depot3MarkerObj = new maplibregl.Marker({element: wrapMarkerEl(depot3El), anchor: 'bottom', offset: [depotConf.offX, depotConf.offY]}).setLngLat(fullPathArray[2]).addTo(map);
 
         // Miguelete.gif al costado del depósito de Posta 3
         const migEl = document.createElement('img');
         migEl.src = 'miguelete.gif';
         migEl.className = 'posta1-gif locality-gif';
         window.migueletMarkerEl = migEl;
-        new maplibregl.Marker({element: migEl, anchor: 'bottom', offset: [600, 0]}).setLngLat(fullPathArray[2]).addTo(map);
+        new maplibregl.Marker({element: wrapMarkerEl(migEl), anchor: 'bottom', offset: [600, 0]}).setLngLat(fullPathArray[2]).addTo(map);
 
         // GIFs de localidades en Postas 4-8 (índices 3-7)
         const localityGifs = [
@@ -632,7 +657,7 @@
             el.src = src;
             el.className = 'posta1-gif locality-gif';
             window.localityGifEls.push(el);
-            new maplibregl.Marker({element: el, anchor: 'bottom'}).setLngLat(fullPathArray[idx]).addTo(map);
+            new maplibregl.Marker({element: wrapMarkerEl(el), anchor: 'bottom'}).setLngLat(fullPathArray[idx]).addTo(map);
         });
 
         // José L. Suárez al lado (antes) del depósito de Posta 9
@@ -640,7 +665,7 @@
         jlsEl.src = 'jose_l_suarez.gif';
         jlsEl.className = 'posta1-gif locality-gif';
         window.jlsMarkerEl = jlsEl;
-        new maplibregl.Marker({element: jlsEl, anchor: 'bottom'}).setLngLat(fullPathArray[fullPathArray.length - 2]).addTo(map);
+        new maplibregl.Marker({element: wrapMarkerEl(jlsEl), anchor: 'bottom'}).setLngLat(fullPathArray[fullPathArray.length - 2]).addTo(map);
 
         // Posta 9 Depot (final)
         const depot10El = document.createElement('img');
@@ -649,13 +674,13 @@
         depot10El.style.width = depotConf.size + 'px';
         depot10El.style.zIndex = 50;
         window.depot10MarkerEl = depot10El;
-        window.depot10MarkerObj = new maplibregl.Marker({element: depot10El, anchor: 'bottom', offset: [depotConf.offX, depotConf.offY]}).setLngLat(fullPathArray[fullPathArray.length - 1]).addTo(map);
+        window.depot10MarkerObj = new maplibregl.Marker({element: wrapMarkerEl(depot10El), anchor: 'bottom', offset: [depotConf.offX, depotConf.offY]}).setLngLat(fullPathArray[fullPathArray.length - 1]).addTo(map);
         // Capa localidades.geojson (archivo externo con datos de indigencia/pobreza)
         fetch('localidades.geojson')
             .then(r => r.json())
             .then(data => {
                 if (map.getSource('localidades-ext')) return;
-                map.addSource('localidades-ext', { type: 'geojson', data });
+                map.addSource('localidades-ext', { type: 'geojson', data, tolerance: 0, buffer: 256, maxzoom: 18 });
                 map.addLayer({
                     id: 'localidades-ext-fill',
                     type: 'fill',
@@ -707,6 +732,67 @@
             .catch(e => console.warn('No se pudo cargar localidades.geojson', e));
 
         bringSanMartinMapLayersToFront();
+
+        // Auto-reparación: en este entorno, cuando las capas se agregan justo después de
+        // que setStyle() reconstruye el estilo (ver fallback más arriba), el worker de
+        // GeoJSON a veces queda en un estado donde las fuentes se registran pero nunca
+        // llegan a "tilearse" (0 features renderizadas pese a tener datos válidos).
+        // setData() sobre la misma fuente NO lo soluciona; hace falta remover y volver a
+        // agregar la fuente. Como red de seguridad, 4s después reconstruimos las fuentes
+        // de polígonos rellenos (fill) para garantizar que San Martín se vea sí o sí.
+        setTimeout(() => {
+            function rebuildFillSource(sourceId, layerDefs) {
+                const src = map.getSource(sourceId);
+                if (!src) return;
+                const data = src._data;
+                layerDefs.forEach(def => { if (map.getLayer(def.id)) map.removeLayer(def.id); });
+                map.removeSource(sourceId);
+                map.addSource(sourceId, { type: 'geojson', data, tolerance: 0, buffer: 256, maxzoom: 18 });
+                layerDefs.forEach(def => map.addLayer(def));
+            }
+
+            rebuildFillSource('san-martin-shape', [
+                { id: 'san-martin-base-fill', type: 'fill', source: 'san-martin-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.16 } },
+                { id: 'san-martin-map-fill', type: 'fill', source: 'san-martin-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.34 } },
+                { id: 'san-martin-map-boundary-glow', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 26, 'line-blur': 14, 'line-opacity': 1 } },
+                { id: 'san-martin-map-boundary-core', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 5, 'line-opacity': 1 } },
+                { id: 'san-martin-map-locality-labels', type: 'symbol', source: 'san-martin-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 24, 'text-anchor': 'center', 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 4 } },
+                { id: 'san-martin-active-fill', type: 'fill', source: 'san-martin-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#ff0000', 2, '#0000ff', 3, '#ffff00', 4, '#00ff00', 5, '#ff0000', 6, '#0000ff', 7, '#ffff00', 8, '#00ff00', '#ff00ff'], 'fill-opacity': 0.3 }, filter: ['==', 'id', -1] },
+                { id: 'san-martin-active-labels', type: 'symbol', source: 'san-martin-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 24, 'text-anchor': 'center' }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#000000', 'text-halo-width': 2 }, filter: ['==', 'id', -1] },
+                { id: 'san-martin-base-glow', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00d4ff', 'line-width': 12, 'line-blur': 8, 'line-opacity': 0.85 } },
+                { id: 'san-martin-active-glow', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ff00ff', 'line-width': 35, 'line-blur': 20, 'line-opacity': 1 }, filter: ['==', 'id', -1] },
+                { id: 'san-martin-core', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3 } },
+                { id: 'san-martin-labels', type: 'symbol', source: 'san-martin-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 20, 'text-anchor': 'center' }, paint: { 'text-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'text-halo-color': 'rgba(0,0,0,0.8)', 'text-halo-width': 3 } }
+            ]);
+
+            if (map.getSource('localidades-san-martin-shp')) {
+                rebuildFillSource('localidades-san-martin-shp', [
+                    { id: 'localidades-san-martin-shp-fill', type: 'fill', source: 'localidades-san-martin-shp', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 7, '#ffaa00', 11, '#a855f7', '#ffffff'], 'fill-opacity': 0.24 } },
+                    { id: 'localidades-san-martin-shp-glow', type: 'line', source: 'localidades-san-martin-shp', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 16, 'line-blur': 10, 'line-opacity': 0.9 } },
+                    { id: 'localidades-san-martin-shp-core', type: 'line', source: 'localidades-san-martin-shp', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 0.95 } },
+                    { id: 'localidades-san-martin-shp-labels', type: 'symbol', source: 'localidades-san-martin-shp', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 16, 'text-anchor': 'center' }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 3 } }
+                ]);
+            }
+
+            if (map.getSource('localidades-ext')) {
+                rebuildFillSource('localidades-ext', [
+                    { id: 'localidades-ext-fill', type: 'fill', source: 'localidades-ext', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.28 } },
+                    { id: 'localidades-ext-glow', type: 'line', source: 'localidades-ext', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 20, 'line-blur': 12, 'line-opacity': 1 } },
+                    { id: 'localidades-ext-border', type: 'line', source: 'localidades-ext', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 1 } },
+                    { id: 'localidades-ext-labels', type: 'symbol', source: 'localidades-ext', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 18, 'text-anchor': 'center', 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 3 } }
+                ]);
+            }
+
+            if (map.getSource('train-line-source')) {
+                rebuildFillSource('train-line-source', [
+                    { id: 'train-line-glow', type: 'line', source: 'train-line-source', paint: { 'line-color': '#00ff00', 'line-width': 20, 'line-blur': 15, 'line-opacity': 0.5 } },
+                    { id: 'train-line-ties', type: 'line', source: 'train-line-source', paint: { 'line-color': '#00ff00', 'line-width': 12, 'line-dasharray': [0.1, 1.5], 'line-blur': 1 } },
+                    { id: 'train-line-rails', type: 'line', source: 'train-line-source', paint: { 'line-color': '#ffffff', 'line-width': 3 } }
+                ]);
+            }
+
+            bringSanMartinMapLayersToFront();
+        }, 4000);
     });
 
     // Interpolación suave de ángulos para evitar rotación brusca al inicio
