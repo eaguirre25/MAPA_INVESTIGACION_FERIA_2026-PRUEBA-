@@ -57,21 +57,21 @@
 
     function bringSanMartinMapLayersToFront() {
         [
-            'localidades-ext-fill',
-            'localidades-ext-glow',
-            'localidades-ext-border',
+            'loc-ext-shape-fill',
+            'loc-ext-shape-glow',
+            'loc-ext-shape-border',
             'san-martin-map-fill',
-            'localidades-san-martin-shp-fill',
+            'loc-shp-shape-fill',
             'san-martin-base-fill',
             'san-martin-map-boundary-glow',
-            'localidades-san-martin-shp-glow',
-            'localidades-ext-labels',
+            'loc-shp-shape-glow',
+            'loc-ext-shape-labels',
             'san-martin-base-glow',
             'san-martin-map-boundary-core',
-            'localidades-san-martin-shp-core',
+            'loc-shp-shape-core',
             'san-martin-core',
             'san-martin-map-locality-labels',
-            'localidades-san-martin-shp-labels',
+            'loc-shp-shape-labels',
             'san-martin-labels',
             'san-martin-active-fill',
             'san-martin-active-glow',
@@ -129,11 +129,35 @@
         "Posta 9: Conclusiones"
     ];
 
+    // Las capas de localidades de San Martín se definen acá, como parte del ESTILO
+    // INICIAL del mapa (no agregadas dinámicamente después vía map.on('load')). En este
+    // entorno, agregar fuentes GeoJSON dinámicamente dentro del handler de 'load' (sobre
+    // todo tras el fallback que reconstruye el estilo con setStyle()) hace que el worker
+    // interno registre la fuente pero nunca la "tilee" — 0 features renderizadas pese a
+    // datos válidos. Definiéndolas ya en el primer estilo que MapLibre parsea, se evita
+    // esa carrera por completo (se procesan igual que la capa satelital, que siempre
+    // renderiza bien).
     const mapStyle = {
         version: 8,
         glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-        sources: { 'esri-satellite': { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize: 256 } },
-        layers: [ { id: 'satellite-layer', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 22 } ]
+        sources: {
+            'esri-satellite': { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize: 256 },
+            'sm-locality-shape': { type: 'geojson', data: sanMartinGeoJSON, tolerance: 0, buffer: 256, maxzoom: 18 }
+        },
+        layers: [
+            { id: 'satellite-layer', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 22 },
+            { id: 'san-martin-base-fill', type: 'fill', source: 'sm-locality-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.16 } },
+            { id: 'san-martin-map-fill', type: 'fill', source: 'sm-locality-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.34 } },
+            { id: 'san-martin-map-boundary-glow', type: 'line', source: 'sm-locality-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 26, 'line-blur': 14, 'line-opacity': 1 } },
+            { id: 'san-martin-map-boundary-core', type: 'line', source: 'sm-locality-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 5, 'line-opacity': 1 } },
+            { id: 'san-martin-map-locality-labels', type: 'symbol', source: 'sm-locality-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 24, 'text-anchor': 'center', 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 4 } },
+            { id: 'san-martin-active-fill', type: 'fill', source: 'sm-locality-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#ff0000', 2, '#0000ff', 3, '#ffff00', 4, '#00ff00', 5, '#ff0000', 6, '#0000ff', 7, '#ffff00', 8, '#00ff00', '#ff00ff'], 'fill-opacity': 0.3 }, filter: ['==', 'id', -1] },
+            { id: 'san-martin-active-labels', type: 'symbol', source: 'sm-locality-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 24, 'text-anchor': 'center' }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#000000', 'text-halo-width': 2 }, filter: ['==', 'id', -1] },
+            { id: 'san-martin-base-glow', type: 'line', source: 'sm-locality-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00d4ff', 'line-width': 12, 'line-blur': 8, 'line-opacity': 0.85 } },
+            { id: 'san-martin-active-glow', type: 'line', source: 'sm-locality-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ff00ff', 'line-width': 35, 'line-blur': 20, 'line-opacity': 1 }, filter: ['==', 'id', -1] },
+            { id: 'san-martin-core', type: 'line', source: 'sm-locality-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3 } },
+            { id: 'san-martin-labels', type: 'symbol', source: 'sm-locality-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 20, 'text-anchor': 'center' }, paint: { 'text-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'text-halo-color': 'rgba(0,0,0,0.8)', 'text-halo-width': 3 } }
+        ]
     };
     const map = new maplibregl.Map({
         container: 'map',
@@ -151,7 +175,7 @@
     // NOTE: after setStyle() rebuilds the style, the GeoJSON worker needs a brief moment
     // to fully re-initialize before it can tile newly-added sources correctly — firing
     // 'load' the instant style.load fires causes sources added in the load handler
-    // (san-martin-shape, localidades-ext, etc.) to silently fail to tile (0 features
+    // (sm-locality-shape, loc-ext-shape, etc.) to silently fail to tile (0 features
     // rendered despite valid data). A short extra delay avoids that race.
     window._mapLayersReady = false;
     setTimeout(function() {
@@ -306,28 +330,28 @@
 
     map.on('load', () => {
         if (window._mapLayersReady) return; window._mapLayersReady = true;
-        // All localities borders
-        map.addSource('san-martin-shape', { type: 'geojson', data: sanMartinLocalidadesGeoJSON, tolerance: 0, buffer: 256, maxzoom: 18 });
+        // La fuente 'sm-locality-shape' y sus capas ya vienen definidas en mapStyle
+        // (ver más arriba) — acá solo actualizamos sus datos con el archivo real.
         if (window.location.protocol !== 'file:') {
             fetch('SAN MARTIN LOCALIDADES.geojson')
                 .then(response => response.json())
                 .then(data => {
                     sanMartinLocalidadesGeoJSON = data;
-                    const sanMartinSource = map.getSource('san-martin-shape');
+                    const sanMartinSource = map.getSource('sm-locality-shape');
                     if (sanMartinSource) sanMartinSource.setData(data);
                 })
                 .catch(error => console.warn('No se pudo cargar SAN MARTIN LOCALIDADES.geojson', error));
         }
 
         if (window.localidadesSanMartinShape) {
-            map.addSource('localidades-san-martin-shp', {
+            map.addSource('loc-shp-shape', {
                 type: 'geojson',
                 data: window.localidadesSanMartinShape
             });
             map.addLayer({
-                id: 'localidades-san-martin-shp-fill',
+                id: 'loc-shp-shape-fill',
                 type: 'fill',
-                source: 'localidades-san-martin-shp',
+                source: 'loc-shp-shape',
                 paint: {
                     'fill-color': [
                         'match',
@@ -343,9 +367,9 @@
                 }
             });
             map.addLayer({
-                id: 'localidades-san-martin-shp-glow',
+                id: 'loc-shp-shape-glow',
                 type: 'line',
-                source: 'localidades-san-martin-shp',
+                source: 'loc-shp-shape',
                 layout: { 'line-join': 'round', 'line-cap': 'round' },
                 paint: {
                     'line-color': '#00e5ff',
@@ -355,9 +379,9 @@
                 }
             });
             map.addLayer({
-                id: 'localidades-san-martin-shp-core',
+                id: 'loc-shp-shape-core',
                 type: 'line',
-                source: 'localidades-san-martin-shp',
+                source: 'loc-shp-shape',
                 layout: { 'line-join': 'round', 'line-cap': 'round' },
                 paint: {
                     'line-color': '#ffffff',
@@ -366,9 +390,9 @@
                 }
             });
             map.addLayer({
-                id: 'localidades-san-martin-shp-labels',
+                id: 'loc-shp-shape-labels',
                 type: 'symbol',
-                source: 'localidades-san-martin-shp',
+                source: 'loc-shp-shape',
                 layout: {
                     'text-field': ['get', 'Localidad'],
                     'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
@@ -383,161 +407,6 @@
             });
         }
         
-        map.addLayer({
-            id: 'san-martin-base-fill',
-            type: 'fill',
-            source: 'san-martin-shape',
-            paint: {
-                'fill-color': [
-                    'match',
-                    ['get', 'id'],
-                    1, '#00d4ff',
-                    2, '#00ff88',
-                    3, '#ff2a55',
-                    4, '#ffaa00',
-                    5, '#00d4ff',
-                    6, '#00ff88',
-                    7, '#ff2a55',
-                    8, '#ffaa00',
-                    '#ffffff'
-                ],
-                'fill-opacity': 0.16
-            }
-        });
-
-        map.addLayer({
-            id: 'san-martin-map-fill',
-            type: 'fill',
-            source: 'san-martin-shape',
-            paint: {
-                'fill-color': [
-                    'match',
-                    ['get', 'id'],
-                    1, '#00d4ff',
-                    2, '#00ff88',
-                    3, '#ff2a55',
-                    4, '#ffaa00',
-                    5, '#00d4ff',
-                    6, '#00ff88',
-                    7, '#ff2a55',
-                    8, '#ffaa00',
-                    '#ffffff'
-                ],
-                'fill-opacity': 0.34
-            }
-        });
-        map.addLayer({
-            id: 'san-martin-map-boundary-glow',
-            type: 'line',
-            source: 'san-martin-shape',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: {
-                'line-color': '#00e5ff',
-                'line-width': 26,
-                'line-blur': 14,
-                'line-opacity': 1
-            }
-        });
-        map.addLayer({
-            id: 'san-martin-map-boundary-core',
-            type: 'line',
-            source: 'san-martin-shape',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: {
-                'line-color': '#ffffff',
-                'line-width': 5,
-                'line-opacity': 1
-            }
-        });
-        map.addLayer({
-            id: 'san-martin-map-locality-labels',
-            type: 'symbol',
-            source: 'san-martin-shape',
-            layout: {
-                'text-field': ['get', 'Localidad'],
-                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                'text-size': 24,
-                'text-anchor': 'center',
-                'text-allow-overlap': true,
-                'text-ignore-placement': true
-            },
-            paint: {
-                'text-color': '#ffffff',
-                'text-halo-color': '#001018',
-                'text-halo-width': 4
-            }
-        });
-
-        // Active Highlight Fill (illuminates entire locality)
-        map.addLayer({
-            id: 'san-martin-active-fill', type: 'fill', source: 'san-martin-shape',
-            paint: { 
-                'fill-color': [
-                    'match',
-                    ['get', 'id'],
-                    1, '#ff0000', // Red
-                    2, '#0000ff', // Blue
-                    3, '#ffff00', // Yellow
-                    4, '#00ff00', // Green
-                    5, '#ff0000',
-                    6, '#0000ff',
-                    7, '#ffff00',
-                    8, '#00ff00',
-                    '#ff00ff'
-                ],
-                'fill-opacity': 0.3 
-            },
-            filter: ['==', 'id', -1] // Initially hide all
-        });
-        
-        // Locality Labels (floating text, for active-highlight only)
-        map.addLayer({
-            id: 'san-martin-active-labels',
-            type: 'symbol',
-            source: 'san-martin-shape',
-            layout: {
-                'text-field': ['get', 'Localidad'],
-                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                'text-size': 24,
-                'text-anchor': 'center'
-            },
-            paint: {
-                'text-color': '#ffffff',
-                'text-halo-color': '#000000',
-                'text-halo-width': 2
-            },
-            filter: ['==', 'id', -1]
-        });
-
-        // Base Glowing Borders (always visible)
-        map.addLayer({
-            id: 'san-martin-base-glow', type: 'line', source: 'san-martin-shape',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': '#00d4ff', 'line-width': 12, 'line-blur': 8, 'line-opacity': 0.85 }
-        });
-
-        // Active Highlight Glow
-        map.addLayer({
-            id: 'san-martin-active-glow', type: 'line', source: 'san-martin-shape',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': '#ff00ff', 'line-width': 35, 'line-blur': 20, 'line-opacity': 1 },
-            filter: ['==', 'id', -1]
-        });
-        
-        map.addLayer({
-            id: 'san-martin-core', type: 'line', source: 'san-martin-shape',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': '#ffffff', 'line-width': 3 }
-        });
-        map.addLayer({
-            id: 'san-martin-labels', type: 'symbol', source: 'san-martin-shape',
-            layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 20, 'text-anchor': 'center' },
-            paint: {
-                'text-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'],
-                'text-halo-color': 'rgba(0,0,0,0.8)', 'text-halo-width': 3
-            }
-        });
-
         // Train Lines
         map.addSource('train-line-source', { type: 'geojson', data: trainLineGeoJSON });
         map.addLayer({ id: 'train-line-glow', type: 'line', source: 'train-line-source', paint: { 'line-color': '#00ff00', 'line-width': 20, 'line-blur': 15, 'line-opacity': 0.5 } });
@@ -593,6 +462,13 @@
         function wrapMarkerEl(innerEl) {
             const wrapper = document.createElement('div');
             wrapper.style.display = 'inline-block';
+            // z-index solo afecta el orden de apilado en elementos posicionados; el <img>
+            // interno queda position:static tras envolverlo, así que cualquier z-index
+            // puesto en él no tendría efecto. MapLibre posiciona (position:absolute) el
+            // wrapper, no el elemento interno, así que el z-index tiene que vivir acá.
+            if (innerEl.style.zIndex) {
+                wrapper.style.zIndex = innerEl.style.zIndex;
+            }
             wrapper.appendChild(innerEl);
             return wrapper;
         }
@@ -679,12 +555,12 @@
         fetch('localidades.geojson')
             .then(r => r.json())
             .then(data => {
-                if (map.getSource('localidades-ext')) return;
-                map.addSource('localidades-ext', { type: 'geojson', data, tolerance: 0, buffer: 256, maxzoom: 18 });
+                if (map.getSource('loc-ext-shape')) return;
+                map.addSource('loc-ext-shape', { type: 'geojson', data, tolerance: 0, buffer: 256, maxzoom: 18 });
                 map.addLayer({
-                    id: 'localidades-ext-fill',
+                    id: 'loc-ext-shape-fill',
                     type: 'fill',
-                    source: 'localidades-ext',
+                    source: 'loc-ext-shape',
                     paint: {
                         'fill-color': [
                             'match', ['get', 'id'],
@@ -696,23 +572,23 @@
                     }
                 });
                 map.addLayer({
-                    id: 'localidades-ext-glow',
+                    id: 'loc-ext-shape-glow',
                     type: 'line',
-                    source: 'localidades-ext',
+                    source: 'loc-ext-shape',
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
                     paint: { 'line-color': '#00e5ff', 'line-width': 20, 'line-blur': 12, 'line-opacity': 1 }
                 });
                 map.addLayer({
-                    id: 'localidades-ext-border',
+                    id: 'loc-ext-shape-border',
                     type: 'line',
-                    source: 'localidades-ext',
+                    source: 'loc-ext-shape',
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
                     paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 1 }
                 });
                 map.addLayer({
-                    id: 'localidades-ext-labels',
+                    id: 'loc-ext-shape-labels',
                     type: 'symbol',
-                    source: 'localidades-ext',
+                    source: 'loc-ext-shape',
                     layout: {
                         'text-field': ['get', 'Localidad'],
                         'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
@@ -751,35 +627,21 @@
                 layerDefs.forEach(def => map.addLayer(def));
             }
 
-            rebuildFillSource('san-martin-shape', [
-                { id: 'san-martin-base-fill', type: 'fill', source: 'san-martin-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.16 } },
-                { id: 'san-martin-map-fill', type: 'fill', source: 'san-martin-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.34 } },
-                { id: 'san-martin-map-boundary-glow', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 26, 'line-blur': 14, 'line-opacity': 1 } },
-                { id: 'san-martin-map-boundary-core', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 5, 'line-opacity': 1 } },
-                { id: 'san-martin-map-locality-labels', type: 'symbol', source: 'san-martin-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 24, 'text-anchor': 'center', 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 4 } },
-                { id: 'san-martin-active-fill', type: 'fill', source: 'san-martin-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#ff0000', 2, '#0000ff', 3, '#ffff00', 4, '#00ff00', 5, '#ff0000', 6, '#0000ff', 7, '#ffff00', 8, '#00ff00', '#ff00ff'], 'fill-opacity': 0.3 }, filter: ['==', 'id', -1] },
-                { id: 'san-martin-active-labels', type: 'symbol', source: 'san-martin-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 24, 'text-anchor': 'center' }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#000000', 'text-halo-width': 2 }, filter: ['==', 'id', -1] },
-                { id: 'san-martin-base-glow', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00d4ff', 'line-width': 12, 'line-blur': 8, 'line-opacity': 0.85 } },
-                { id: 'san-martin-active-glow', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ff00ff', 'line-width': 35, 'line-blur': 20, 'line-opacity': 1 }, filter: ['==', 'id', -1] },
-                { id: 'san-martin-core', type: 'line', source: 'san-martin-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3 } },
-                { id: 'san-martin-labels', type: 'symbol', source: 'san-martin-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 20, 'text-anchor': 'center' }, paint: { 'text-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'text-halo-color': 'rgba(0,0,0,0.8)', 'text-halo-width': 3 } }
-            ]);
-
-            if (map.getSource('localidades-san-martin-shp')) {
-                rebuildFillSource('localidades-san-martin-shp', [
-                    { id: 'localidades-san-martin-shp-fill', type: 'fill', source: 'localidades-san-martin-shp', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 7, '#ffaa00', 11, '#a855f7', '#ffffff'], 'fill-opacity': 0.24 } },
-                    { id: 'localidades-san-martin-shp-glow', type: 'line', source: 'localidades-san-martin-shp', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 16, 'line-blur': 10, 'line-opacity': 0.9 } },
-                    { id: 'localidades-san-martin-shp-core', type: 'line', source: 'localidades-san-martin-shp', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 0.95 } },
-                    { id: 'localidades-san-martin-shp-labels', type: 'symbol', source: 'localidades-san-martin-shp', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 16, 'text-anchor': 'center' }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 3 } }
+            if (map.getSource('loc-shp-shape')) {
+                rebuildFillSource('loc-shp-shape', [
+                    { id: 'loc-shp-shape-fill', type: 'fill', source: 'loc-shp-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 7, '#ffaa00', 11, '#a855f7', '#ffffff'], 'fill-opacity': 0.24 } },
+                    { id: 'loc-shp-shape-glow', type: 'line', source: 'loc-shp-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 16, 'line-blur': 10, 'line-opacity': 0.9 } },
+                    { id: 'loc-shp-shape-core', type: 'line', source: 'loc-shp-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 0.95 } },
+                    { id: 'loc-shp-shape-labels', type: 'symbol', source: 'loc-shp-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 16, 'text-anchor': 'center' }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 3 } }
                 ]);
             }
 
-            if (map.getSource('localidades-ext')) {
-                rebuildFillSource('localidades-ext', [
-                    { id: 'localidades-ext-fill', type: 'fill', source: 'localidades-ext', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.28 } },
-                    { id: 'localidades-ext-glow', type: 'line', source: 'localidades-ext', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 20, 'line-blur': 12, 'line-opacity': 1 } },
-                    { id: 'localidades-ext-border', type: 'line', source: 'localidades-ext', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 1 } },
-                    { id: 'localidades-ext-labels', type: 'symbol', source: 'localidades-ext', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 18, 'text-anchor': 'center', 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 3 } }
+            if (map.getSource('loc-ext-shape')) {
+                rebuildFillSource('loc-ext-shape', [
+                    { id: 'loc-ext-shape-fill', type: 'fill', source: 'loc-ext-shape', paint: { 'fill-color': ['match', ['get', 'id'], 1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55', 4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88', 7, '#ff2a55', 8, '#ffaa00', '#ffffff'], 'fill-opacity': 0.28 } },
+                    { id: 'loc-ext-shape-glow', type: 'line', source: 'loc-ext-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#00e5ff', 'line-width': 20, 'line-blur': 12, 'line-opacity': 1 } },
+                    { id: 'loc-ext-shape-border', type: 'line', source: 'loc-ext-shape', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 1 } },
+                    { id: 'loc-ext-shape-labels', type: 'symbol', source: 'loc-ext-shape', layout: { 'text-field': ['get', 'Localidad'], 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 18, 'text-anchor': 'center', 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#001018', 'text-halo-width': 3 } }
                 ]);
             }
 
@@ -792,7 +654,7 @@
             }
 
             bringSanMartinMapLayersToFront();
-        }, 4000);
+        }, 12000);
     });
 
     // Interpolación suave de ángulos para evitar rotación brusca al inicio
