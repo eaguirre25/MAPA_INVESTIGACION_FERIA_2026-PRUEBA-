@@ -125,14 +125,15 @@
         "Posta 9: Conclusiones"
     ];
 
+    const mapStyle = {
+        version: 8,
+        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+        sources: { 'esri-satellite': { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize: 256 } },
+        layers: [ { id: 'satellite-layer', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 22 } ]
+    };
     const map = new maplibregl.Map({
         container: 'map',
-        style: {
-            version: 8,
-            glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-            sources: { 'esri-satellite': { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize: 256 } },
-            layers: [ { id: 'satellite-layer', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 22 } ]
-        },
+        style: mapStyle,
         center: coordsCenter,
         zoom: 11.35,
         pitch: 0,
@@ -141,6 +142,20 @@
         antialias: true
     });
     window.map = map;
+
+    // Fallback: if map.on('load') still hasn't fired after 2s, force a style reload.
+    window._mapLayersReady = false;
+    setTimeout(function() {
+        if (window._mapLayersReady) return;
+        if (map.isStyleLoaded()) {
+            map.fire('load');
+        } else {
+            map.once('style.load', function() {
+                if (!window._mapLayersReady) map.fire('load');
+            });
+            map.setStyle(mapStyle);
+        }
+    }, 2000);
 
     let mainPinwheelMarker;
     let depotMarker = null;
@@ -272,6 +287,7 @@
     };
 
     map.on('load', () => {
+        if (window._mapLayersReady) return; window._mapLayersReady = true;
         // All localities borders
         map.addSource('san-martin-shape', { type: 'geojson', data: sanMartinLocalidadesGeoJSON });
         if (window.location.protocol !== 'file:') {
@@ -1337,7 +1353,11 @@
                 screen1.classList.remove('active'); screen2.classList.add('active');
             } else if (screen2.classList.contains('active')) {
                 screen3.classList.add('under');
-                setTimeout(() => map.resize(), 50);
+                setTimeout(() => {
+                    map.resize();
+                    // If map style got stuck (hidden container at init), re-apply it now
+                    if (!map.isStyleLoaded()) map.setStyle(mapStyle);
+                }, 50);
                 rollWrapper.classList.add('rolling');
                 setTimeout(() => {
                     screen2.classList.remove('active');
