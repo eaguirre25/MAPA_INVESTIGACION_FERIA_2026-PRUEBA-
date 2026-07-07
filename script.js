@@ -57,11 +57,15 @@
 
     function bringSanMartinMapLayersToFront() {
         [
+            'localidades-ext-fill',
+            'localidades-ext-glow',
+            'localidades-ext-border',
             'san-martin-map-fill',
             'localidades-san-martin-shp-fill',
             'san-martin-base-fill',
             'san-martin-map-boundary-glow',
             'localidades-san-martin-shp-glow',
+            'localidades-ext-labels',
             'san-martin-base-glow',
             'san-martin-map-boundary-core',
             'localidades-san-martin-shp-core',
@@ -646,6 +650,62 @@
         depot10El.style.zIndex = 50;
         window.depot10MarkerEl = depot10El;
         window.depot10MarkerObj = new maplibregl.Marker({element: depot10El, anchor: 'bottom', offset: [depotConf.offX, depotConf.offY]}).setLngLat(fullPathArray[fullPathArray.length - 1]).addTo(map);
+        // Capa localidades.geojson (archivo externo con datos de indigencia/pobreza)
+        fetch('localidades.geojson')
+            .then(r => r.json())
+            .then(data => {
+                if (map.getSource('localidades-ext')) return;
+                map.addSource('localidades-ext', { type: 'geojson', data });
+                map.addLayer({
+                    id: 'localidades-ext-fill',
+                    type: 'fill',
+                    source: 'localidades-ext',
+                    paint: {
+                        'fill-color': [
+                            'match', ['get', 'id'],
+                            1, '#00d4ff', 2, '#00ff88', 3, '#ff2a55',
+                            4, '#ffaa00', 5, '#00d4ff', 6, '#00ff88',
+                            7, '#ff2a55', 8, '#ffaa00', '#ffffff'
+                        ],
+                        'fill-opacity': 0.28
+                    }
+                });
+                map.addLayer({
+                    id: 'localidades-ext-glow',
+                    type: 'line',
+                    source: 'localidades-ext',
+                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    paint: { 'line-color': '#00e5ff', 'line-width': 20, 'line-blur': 12, 'line-opacity': 1 }
+                });
+                map.addLayer({
+                    id: 'localidades-ext-border',
+                    type: 'line',
+                    source: 'localidades-ext',
+                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 1 }
+                });
+                map.addLayer({
+                    id: 'localidades-ext-labels',
+                    type: 'symbol',
+                    source: 'localidades-ext',
+                    layout: {
+                        'text-field': ['get', 'Localidad'],
+                        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                        'text-size': 18,
+                        'text-anchor': 'center',
+                        'text-allow-overlap': true,
+                        'text-ignore-placement': true
+                    },
+                    paint: {
+                        'text-color': '#ffffff',
+                        'text-halo-color': '#001018',
+                        'text-halo-width': 3
+                    }
+                });
+                bringSanMartinMapLayersToFront();
+            })
+            .catch(e => console.warn('No se pudo cargar localidades.geojson', e));
+
         bringSanMartinMapLayersToFront();
     });
 
